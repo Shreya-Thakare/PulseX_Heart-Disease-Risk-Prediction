@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PulseX · Heart Risk Command Center</title>
+<style>
+:root{
+  --bg:#070f12;--sidebar:#0b1518;--card:#112024;--elevated:#0e1a1e;
+  --border:#1e383f;--border-soft:#162b30;--text:#e8f2f0;--muted:#8aa8a3;--dim:#5f7a76;
+  --accent:#2b7de9;--sage:#5b9a8b;--accent-soft:rgba(43,125,233,.15);
+  --green:#5b9a8b;--green-soft:rgba(91,154,139,.18);
+  --red:#e05c5c;--red-soft:rgba(224,92,92,.15);
+  --amber:#d4a017;--amber-soft:rgba(212,160,23,.15);
+  --radius:14px;--shadow:0 10px 36px rgba(0,0,0,.4);
+  font-family:"Segoe UI",Inter,system-ui,sans-serif;
+}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);line-height:1.5;display:flex;min-height:100vh}
+button,input,select{font:inherit}button{cursor:pointer}
+.sidebar{width:240px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border-soft);display:flex;flex-direction:column;padding:1.25rem .9rem;position:sticky;top:0;height:100vh}
+.side-brand{display:flex;align-items:center;gap:.75rem;padding:.25rem .5rem 1.25rem;border-bottom:1px solid var(--border-soft);margin-bottom:1rem}
+.side-brand .mark{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#2b7de9,#5b9a8b);display:grid;place-items:center;font-weight:800;box-shadow:0 0 20px rgba(43,125,233,.35)}
+.side-brand small{display:block;color:var(--dim);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+.side-brand strong{font-size:.95rem}
+.nav-list{display:grid;gap:.3rem;flex:1}
+.nav-btn{display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;border:0;border-radius:10px;padding:.7rem .85rem;background:transparent;color:var(--muted);font-weight:600;font-size:.9rem}
+.nav-btn:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.nav-btn.active{background:linear-gradient(90deg,rgba(43,125,233,.22),rgba(91,154,139,.1));color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.nav-btn .ico{width:1.25rem;text-align:center}
+.side-foot{padding:.75rem .5rem 0;border-top:1px solid var(--border-soft);font-size:.72rem;color:var(--dim)}
+.api-pill{display:inline-flex;align-items:center;gap:.35rem;margin-top:.45rem;padding:.3rem .55rem;border-radius:999px;background:var(--card);border:1px solid var(--border);font-size:.72rem;color:var(--muted)}
+.api-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.api-pill.online .dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.main{flex:1;min-width:0;padding:1.35rem 1.35rem 2.5rem;background:radial-gradient(ellipse 60% 40% at 80% -10%,rgba(43,125,233,.1),transparent 50%),var(--bg)}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.page-head h1{margin:0;font-size:1.45rem;font-weight:750;letter-spacing:-.02em}
+.page-head p{margin:.25rem 0 0;color:var(--muted);font-size:.9rem}
+.head-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:.55rem .95rem;font-weight:650;font-size:.88rem;background:linear-gradient(135deg,#2b7de9,#3d8f9a);color:#fff;box-shadow:0 4px 16px rgba(43,125,233,.3)}
+.btn:hover{filter:brightness(1.08)}.btn:disabled{opacity:.55;cursor:wait}
+.btn-ghost{background:var(--card);color:var(--text);border:1px solid var(--border);box-shadow:none}
+.btn-sm{padding:.35rem .65rem;font-size:.78rem;border-radius:8px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:.85rem;margin-bottom:1.15rem}
+.metric{background:linear-gradient(160deg,#152a30,#101e22);border:1px solid var(--border-soft);border-radius:var(--radius);padding:1rem 1.1rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.metric label{display:block;color:var(--muted);font-size:.78rem;margin-bottom:.2rem}
+.metric .value{font-size:1.55rem;font-weight:750}
+.metric .sub{color:var(--dim);font-size:.72rem;margin-top:.15rem}
+.panel{background:linear-gradient(180deg,#142428,#101c20);border:1px solid var(--border-soft);border-radius:var(--radius);padding:1.15rem;box-shadow:var(--shadow)}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.95rem}
+.panel-head h2{margin:0;font-size:1rem;font-weight:700}
+.tag{font-size:.68rem;font-weight:650;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.view{display:none}.view.active{display:block}
+.grid-2{display:grid;grid-template-columns:1.15fr .95fr;gap:1rem}
+.grid-2b{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.85rem}
+.toolbar input,.toolbar select,.field input,.field select{background:#0b1619;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:.55rem .75rem;outline:none}
+.toolbar input{flex:1;min-width:160px}
+.toolbar input:focus,.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;color:var(--dim);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:.5rem .4rem;border-bottom:1px solid var(--border)}
+td{padding:.75rem .4rem;border-bottom:1px solid var(--border-soft);font-size:.9rem;vertical-align:middle}
+tbody tr.clickable{cursor:pointer}tbody tr.clickable:hover td,tbody tr.active td{background:rgba(43,125,233,.07)}
+.badge{display:inline-flex;align-items:center;padding:.18rem .5rem;border-radius:999px;font-size:.72rem;font-weight:700}
+.badge.high,.badge.open{background:var(--red-soft);color:#fca5a5;border:1px solid rgba(224,92,92,.3)}
+.badge.low,.badge.resolved{background:var(--green-soft);color:#86efac;border:1px solid rgba(91,154,139,.35)}
+.badge.mid,.badge.progress{background:var(--amber-soft);color:#fcd34d;border:1px solid rgba(212,160,23,.3)}
+.form{display:grid;gap:.65rem}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.55rem}
+.field{display:grid;gap:.28rem;font-size:.78rem;color:var(--muted);font-weight:500}
+.risk-hero{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;margin-bottom:1rem}
+.gauge-wrap{position:relative;width:140px;height:140px;flex-shrink:0}
+.gauge-wrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.gauge-track{fill:none;stroke:var(--border);stroke-width:10}
+.gauge-fill{fill:none;stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .7s ease,stroke .3s}
+.gauge-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.gauge-center .pct{font-size:1.5rem;font-weight:800;line-height:1}
+.gauge-center .lbl{font-size:.62rem;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-top:.15rem}
+.risk-meta h3{margin:0 0 .3rem;font-size:1.25rem}.risk-meta p{margin:0;color:var(--muted);font-size:.88rem}
+.source{display:inline-block;margin-top:.5rem;font-size:.72rem;color:var(--dim);padding:.2rem .5rem;border-radius:6px;background:var(--elevated);border:1px solid var(--border)}
+.driver-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem;font-size:.82rem}
+.driver-row span:first-child{width:130px;color:var(--muted);flex-shrink:0}
+.driver-bar{flex:1;height:7px;background:var(--elevated);border-radius:4px;overflow:hidden}
+.driver-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--sage))}
+.driver-row span:last-child{width:36px;text-align:right;font-weight:600;font-size:.78rem}
+.bars{display:grid;gap:.55rem}.bar-row{display:flex;align-items:center;gap:.6rem;font-size:.85rem}
+.bar-row .label{width:70px;color:var(--muted)}.bar-track{flex:1;height:10px;background:var(--elevated);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px}.bar-row .cnt{width:28px;text-align:right;font-weight:700}
+.empty{color:var(--dim);font-size:.9rem;padding:1.5rem 0;text-align:center}
+.toast{margin:.5rem 0 0;font-size:.82rem;color:var(--muted);min-height:1.2em}
+.toast.err{color:#fca5a5}.toast.ok{color:#86efac}
+.activity-list{display:grid;gap:.55rem;max-height:480px;overflow-y:auto}
+.act-item{display:flex;gap:.75rem;padding:.7rem .85rem;background:var(--elevated);border:1px solid var(--border-soft);border-radius:10px;font-size:.88rem}
+.act-item .when{color:var(--dim);font-size:.72rem}
+.act-item .kind{font-size:.65rem;font-weight:700;text-transform:uppercase;padding:.1rem .4rem;border-radius:4px;align-self:flex-start}
+.kind-predict{background:var(--accent-soft);color:#93c5fd}.kind-info{background:rgba(255,255,255,.06);color:var(--muted)}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem;font-size:.88rem}
+.detail-grid dt{color:var(--dim);font-size:.72rem}.detail-grid dd{margin:0 0 .35rem;font-weight:600}
+.detail-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}
+.metric-row{display:flex;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid var(--border-soft);font-size:.88rem}
+.metric-row:last-child{border-bottom:0}.metric-row .ml{color:var(--muted)}.metric-row .mv{font-weight:700;color:#93c5fd}
+.disclaimer{margin-top:1rem;padding:.75rem .9rem;border-radius:10px;background:var(--amber-soft);border:1px solid rgba(212,160,23,.3);font-size:.8rem;color:#e8c547}
+@media(max-width:960px){body{flex-direction:column}.sidebar{width:100%;height:auto;position:relative}.nav-list{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}.metrics{grid-template-columns:1fr 1fr}.grid-2,.grid-2b,.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="side-brand"><div class="mark">♥</div><div><small>Clinical AI</small><strong>PulseX</strong></div></div>
+  <nav class="nav-list">
+    <button type="button" class="nav-btn active" data-view="overview"><span class="ico">◈</span> Overview</button>
+    <button type="button" class="nav-btn" data-view="patients"><span class="ico">◎</span> Patients</button>
+    <button type="button" class="nav-btn" data-view="predict"><span class="ico">◉</span> Predict risk</button>
+    <button type="button" class="nav-btn" data-view="alerts"><span class="ico">⚠</span> Alerts</button>
+    <button type="button" class="nav-btn" data-view="model"><span class="ico">▣</span> Model</button>
+    <button type="button" class="nav-btn" data-view="activity"><span class="ico">≡</span> Activity</button>
+  </nav>
+  <div class="side-foot">Heart risk command center<div class="api-pill" id="apiPill"><span class="dot"></span> API checking…</div></div>
+</aside>
+<div class="main">
+<section class="view active" id="view-overview">
+  <div class="page-head"><div><h1>Overview</h1><p>Patient risk snapshot and cohort activity.</p></div>
+  <div class="head-actions"><button type="button" class="btn" data-go="predict">New prediction</button></div></div>
+  <div class="metrics">
+    <div class="metric"><label>Patients</label><div class="value" id="mPatients">—</div><div class="sub">In registry</div></div>
+    <div class="metric"><label>High risk</label><div class="value" id="mHigh">—</div><div class="sub">Flagged cohort</div></div>
+    <div class="metric"><label>Open alerts</label><div class="value" id="mAlerts">—</div><div class="sub">Need follow-up</div></div>
+    <div class="metric"><label>Predictions run</label><div class="value" id="mPreds">0</div><div class="sub">This session</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="panel"><div class="panel-head"><h2>Priority patients</h2><span class="tag">Highest risk first</span></div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Patient</th><th>Age / Sex</th><th>Key markers</th><th>Risk</th></tr></thead><tbody id="overviewRows"></tbody></table></div>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Risk distribution</h2><span class="tag">Cohort</span></div>
+      <div class="bars" id="overviewBars"></div>
+      <div class="detail-actions" style="margin-top:1rem">
+        <button type="button" class="btn btn-sm btn-ghost" data-go="alerts">Manage alerts</button>
+        <button type="button" class="btn btn-sm" data-go="patients">View patients</button>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="view" id="view-patients">
+  <div class="page-head"><div><h1>Patients</h1><p>Search, filter by risk, open details, or run a prediction.</p></div>
+  <div class="head-actions"><button type="button" class="btn" data-go="predict">Predict risk</button></div></div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="toolbar">
+        <input id="patSearch" type="search" placeholder="Search name or ID…"/>
+        <select id="patSort"><option value="risk">Sort: Risk</option><option value="age">Sort: Age</option><option value="name">Sort: Name</option></select>
+        <select id="patFilter"><option value="">All risk</option><option value="High">High risk</option><option value="Moderate">Moderate</option><option value="Low">Low risk</option></select>
+      </div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Patient</th><th>Age</th><th>BP / Chol</th><th>Risk</th><th></th></tr></thead><tbody id="patientRows"></tbody></table></div>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Patient detail</h2><span class="tag" id="detailTag">Select a row</span></div>
+      <div id="patientDetail" class="empty">Click any patient to see clinical markers and actions.</div>
+    </div>
+  </div>
+</section>
+<section class="view" id="view-predict">
+  <div class="page-head"><div><h1>Heart disease risk prediction</h1><p>Ensemble ML · enter clinical indicators or load from a patient.</p></div></div>
+  <div class="grid-2">
+    <div class="panel"><div class="panel-head"><h2>Model inputs</h2><span class="tag">13 features</span></div>
+      <form class="form" id="predictForm">
+        <div class="form-row">
+          <label class="field">Age (years)<input name="age" type="number" min="29" max="77" value="54" required/></label>
+          <label class="field">Sex<select name="sex"><option value="1">Male</option><option value="0">Female</option></select></label>
+        </div>
+        <div class="form-row">
+          <label class="field">Chest pain type<select name="cp"><option value="0">Typical angina</option><option value="1">Atypical angina</option><option value="2">Non-anginal</option><option value="3">Asymptomatic</option></select></label>
+          <label class="field">Resting BP (mm Hg)<input name="trestbps" type="number" min="94" max="200" value="130" required/></label>
+        </div>
+        <div class="form-row">
+          <label class="field">Cholesterol (mg/dl)<input name="chol" type="number" min="126" max="564" value="240" required/></label>
+          <label class="field">Fasting BS &gt; 120<select name="fbs"><option value="0">No</option><option value="1">Yes</option></select></label>
+        </div>
+        <div class="form-row">
+          <label class="field">Resting ECG<select name="restecg"><option value="0">Normal</option><option value="1">ST-T abnormality</option><option value="2">LV hypertrophy</option></select></label>
+          <label class="field">Max heart rate<input name="thalach" type="number" min="71" max="202" value="150" required/></label>
+        </div>
+        <div class="form-row">
+          <label class="field">Exercise angina<select name="exang"><option value="0">No</option><option value="1">Yes</option></select></label>
+          <label class="field">ST depression<input name="oldpeak" type="number" min="0" max="6.2" step="0.1" value="1.0" required/></label>
+        </div>
+        <div class="form-row">
+          <label class="field">ST slope<select name="slope"><option value="0">Upsloping</option><option value="1" selected>Flat</option><option value="2">Downsloping</option></select></label>
+          <label class="field">Major vessels (0–3)<input name="ca" type="number" min="0" max="4" value="0" required/></label>
+        </div>
+        <div class="form-row">
+          <label class="field">Thalassemia<select name="thal"><option value="0">Null</option><option value="1">Fixed defect</option><option value="2" selected>Normal</option><option value="3">Reversible defect</option></select></label>
+          <label class="field">&nbsp;</label>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn" type="submit" id="predictBtn">Run prediction</button>
+          <button class="btn btn-ghost" type="button" id="resetFormBtn">Reset defaults</button>
+        </div>
+        <p class="toast" id="predictToast"></p>
+      </form>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Prediction result</h2><span class="tag">Gauge · drivers</span></div>
+      <div id="vizEmpty" class="empty">Run a prediction to see the risk gauge and feature drivers.</div>
+      <div id="vizResult" hidden>
+        <div class="risk-hero">
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 120 120"><circle class="gauge-track" cx="60" cy="60" r="52"/><circle id="gaugeFill" class="gauge-fill" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73" stroke="#5b9a8b"/></svg>
+            <div class="gauge-center"><div><div class="pct" id="gaugePct">0%</div><div class="lbl">Risk</div></div></div>
+          </div>
+          <div class="risk-meta"><h3 id="riskTitle">—</h3><p id="riskMsg">—</p><span class="source" id="riskSource">—</span></div>
+        </div>
+        <div class="panel-head" style="margin-top:.5rem"><h2 style="font-size:.9rem">Risk drivers</h2></div>
+        <div id="driverList"></div>
+        <div class="disclaimer">Statistical estimate only — not a medical diagnosis. Consult a qualified clinician.</div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="view" id="view-alerts">
+  <div class="page-head"><div><h1>Clinical alerts</h1><p>Follow-up flags for high-risk assessments.</p></div></div>
+  <div class="panel">
+    <div class="toolbar"><select id="alertFilter"><option value="">All status</option><option value="Open">Open</option><option value="In Progress">In Progress</option><option value="Resolved">Resolved</option></select></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Patient</th><th>Alert</th><th>Status</th><th>Actions</th></tr></thead><tbody id="alertRows"></tbody></table></div>
+  </div>
+</section>
+<section class="view" id="view-model">
+  <div class="page-head"><div><h1>Model performance</h1><p>Held-out metrics for the PulseX ensemble.</p></div></div>
+  <div class="grid-2b">
+    <div class="panel"><div class="panel-head"><h2>Random Forest</h2><span class="tag">Tree ensemble</span></div>
+      <div class="metric-row"><span class="ml">Accuracy</span><span class="mv">77.0%</span></div>
+      <div class="metric-row"><span class="ml">Precision</span><span class="mv">78.8%</span></div>
+      <div class="metric-row"><span class="ml">Recall</span><span class="mv">78.8%</span></div>
+      <div class="metric-row"><span class="ml">F1 Score</span><span class="mv">78.8%</span></div>
+      <div class="metric-row"><span class="ml">ROC-AUC</span><span class="mv">0.859</span></div>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Logistic Regression</h2><span class="tag">Linear baseline</span></div>
+      <div class="metric-row"><span class="ml">Accuracy</span><span class="mv">80.3%</span></div>
+      <div class="metric-row"><span class="ml">Precision</span><span class="mv">80.0%</span></div>
+      <div class="metric-row"><span class="ml">Recall</span><span class="mv">84.8%</span></div>
+      <div class="metric-row"><span class="ml">F1 Score</span><span class="mv">82.4%</span></div>
+      <div class="metric-row"><span class="ml">ROC-AUC</span><span class="mv">0.871</span></div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:1rem"><div class="panel-head"><h2>Pipeline</h2><span class="tag">Production path</span></div>
+    <p style="margin:0;color:var(--muted);font-size:.9rem">Clinical data → cleaning &amp; deduplication → stratified split → Random Forest + scaled Logistic Regression → averaged probability → Low / Moderate / High risk band.</p>
+  </div>
+</section>
+<section class="view" id="view-activity">
+  <div class="page-head"><div><h1>Activity log</h1><p>Predictions, patient selections, and alert updates.</p></div>
+  <div class="head-actions"><button type="button" class="btn btn-ghost" id="clearActivityBtn">Clear log</button></div></div>
+  <div class="panel"><div class="activity-list" id="activityFeed"></div></div>
+</section>
+</div>
+<script>
+const API='http://localhost:8000',GAUGE=2*Math.PI*52;
+const patients=[
+{id:1,name:'R. Sharma',age:54,sex:1,trestbps:130,chol:250,thalach:148,cp:0,fbs:0,restecg:1,exang:0,oldpeak:1.2,slope:1,ca:0,thal:2,riskScore:.58},
+{id:2,name:'A. Patel',age:62,sex:0,trestbps:140,chol:294,thalach:106,cp:0,fbs:1,restecg:1,exang:0,oldpeak:1.9,slope:1,ca:3,thal:2,riskScore:.82},
+{id:3,name:'S. Khan',age:45,sex:1,trestbps:120,chol:220,thalach:170,cp:1,fbs:0,restecg:0,exang:0,oldpeak:.2,slope:2,ca:0,thal:2,riskScore:.22},
+{id:4,name:'M. Iyer',age:58,sex:1,trestbps:150,chol:270,thalach:125,cp:0,fbs:0,restecg:0,exang:1,oldpeak:2.8,slope:1,ca:2,thal:3,riskScore:.91},
+{id:5,name:'P. Desai',age:39,sex:0,trestbps:118,chol:210,thalach:175,cp:2,fbs:0,restecg:1,exang:0,oldpeak:.4,slope:2,ca:0,thal:2,riskScore:.18},
+{id:6,name:'V. Nair',age:67,sex:1,trestbps:160,chol:286,thalach:108,cp:0,fbs:0,restecg:0,exang:1,oldpeak:1.5,slope:1,ca:3,thal:2,riskScore:.88},
+{id:7,name:'N. Reddy',age:51,sex:1,trestbps:125,chol:245,thalach:155,cp:2,fbs:0,restecg:0,exang:0,oldpeak:.6,slope:1,ca:0,thal:2,riskScore:.35},
+{id:8,name:'K. Mehta',age:70,sex:1,trestbps:145,chol:174,thalach:125,cp:0,fbs:0,restecg:1,exang:1,oldpeak:2.6,slope:0,ca:0,thal:3,riskScore:.79},
+];
+let alerts=[
+{id:1,patient:'A. Patel',description:'High risk — schedule cardiology review',status:'Open'},
+{id:2,patient:'M. Iyer',description:'Exercise angina + elevated ST depression',status:'In Progress'},
+{id:3,patient:'V. Nair',description:'Multiple vessels flagged — urgent follow-up',status:'Open'},
+{id:4,patient:'K. Mehta',description:'Age + angina combination — monitor BP',status:'Open'},
+{id:5,patient:'R. Sharma',description:'Moderate risk — lifestyle counselling',status:'Resolved'},
+];
+let selectedId=null,predictions=0,activity=[],patQuery='',patSort='risk',patFilter='',alertFilter='';
+function riskBand(s){return s>=.75?'High':s>=.45?'Moderate':'Low'}
+function badge(r){return `<span class="badge ${r==='High'?'high':r==='Moderate'?'mid':'low'}">${r}</span>`}
+function alertBadge(s){return `<span class="badge ${s==='Open'?'open':s==='Resolved'?'resolved':'progress'}">${s}</span>`}
+function sexLabel(s){return Number(s)===1?'Male':'Female'}
+function logActivity(text,kind){activity.unshift({text,kind:kind||'info',when:new Date().toLocaleTimeString()});if(activity.length>40)activity.pop();renderActivity()}
+function localPredict(d){
+  const drivers={},age=+d.age,chol=+d.chol,bp=+d.trestbps,hr=+d.thalach,oldpeak=+d.oldpeak,ca=+d.ca,cp=+d.cp,exang=+d.exang,thal=+d.thal;
+  drivers['Age']=Math.min(Math.max((age-40)/40,0),1);drivers['Cholesterol']=Math.min(Math.max((chol-180)/200,0),1);
+  drivers['Blood pressure']=Math.min(Math.max((bp-110)/80,0),1);drivers['Low max HR']=Math.min(Math.max((170-hr)/100,0),1);
+  drivers['ST depression']=Math.min(oldpeak/4,1);drivers['Vessels (ca)']=Math.min(ca/3,1);
+  drivers['Typical angina']=cp===0?.85:.2;drivers['Exercise angina']=exang;drivers['Thalassemia']=(thal===3||thal===1)?.8:.25;
+  let score=drivers['Age']*.1+drivers['Cholesterol']*.1+drivers['Blood pressure']*.1+drivers['Low max HR']*.12+drivers['ST depression']*.12+drivers['Vessels (ca)']*.14+drivers['Typical angina']*.12+drivers['Exercise angina']*.12+drivers['Thalassemia']*.08;
+  const prob=Math.max(.05,Math.min(.95,score)),level=riskBand(prob);
+  return{risk_level:level,probability:Math.round(prob*1000)/10,prediction:prob>=.5?1:0,source:'local',drivers,message:level==='High'?'Elevated estimated risk. Recommend clinical review.':level==='Moderate'?'Moderate estimated risk. Continue monitoring.':'Lower estimated risk. Maintain preventive care.'};
+}
+async function predict(body){
+  try{
+    const res=await fetch(`${API}/predict`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok)throw new Error('api');
+    const data=await res.json();data.source=data.mode||'api';data.drivers=data.drivers||localPredict(body).drivers;
+    if(data.high_risk_probability!=null&&data.probability==null)data.probability=Math.round(data.high_risk_probability*1000)/10;
+    if(!data.risk_level)data.risk_level=riskBand((data.probability||0)/100);
+    return data;
+  }catch{return localPredict(body)}
+}
+function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));const view=document.getElementById('view-'+name);if(view)view.classList.add('active');const btn=document.querySelector(`.nav-btn[data-view="${name}"]`);if(btn)btn.classList.add('active')}
+function sortedPatients(){let list=patients.slice();if(patQuery){const q=patQuery.toLowerCase();list=list.filter(p=>p.name.toLowerCase().includes(q)||String(p.id).includes(q))}if(patFilter)list=list.filter(p=>riskBand(p.riskScore)===patFilter);list.sort((a,b)=>patSort==='name'?a.name.localeCompare(b.name):patSort==='age'?b.age-a.age:b.riskScore-a.riskScore);return list}
+function renderOverview(){
+  document.getElementById('mPatients').textContent=patients.length;
+  document.getElementById('mHigh').textContent=patients.filter(p=>riskBand(p.riskScore)==='High').length;
+  document.getElementById('mAlerts').textContent=alerts.filter(a=>a.status!=='Resolved').length;
+  document.getElementById('mPreds').textContent=predictions;
+  const top=patients.slice().sort((a,b)=>b.riskScore-a.riskScore).slice(0,5);
+  document.getElementById('overviewRows').innerHTML=top.map(p=>`<tr class="clickable" data-id="${p.id}"><td><strong>${p.name}</strong></td><td>${p.age} · ${sexLabel(p.sex)}</td><td>BP ${p.trestbps} · Chol ${p.chol}</td><td>${badge(riskBand(p.riskScore))}</td></tr>`).join('');
+  const counts={High:0,Moderate:0,Low:0};patients.forEach(p=>{counts[riskBand(p.riskScore)]++});const total=patients.length||1;const colors={High:'var(--red)',Moderate:'var(--amber)',Low:'var(--sage)'};
+  document.getElementById('overviewBars').innerHTML=['High','Moderate','Low'].map(k=>`<div class="bar-row"><span class="label">${k}</span><div class="bar-track"><div class="bar-fill" style="width:${counts[k]/total*100}%;background:${colors[k]}"></div></div><span class="cnt">${counts[k]}</span></div>`).join('');
+}
+function renderPatients(){
+  const list=sortedPatients();
+  document.getElementById('patientRows').innerHTML=list.map(p=>`<tr class="clickable ${selectedId===p.id?'active':''}" data-id="${p.id}"><td><strong>${p.name}</strong> <span style="color:var(--dim);font-size:.75rem">#${p.id}</span></td><td>${p.age}</td><td>${p.trestbps} / ${p.chol}</td><td>${badge(riskBand(p.riskScore))}</td><td><button type="button" class="btn btn-sm btn-ghost load-btn" data-id="${p.id}">Load</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">No matches</td></tr>';
+}
+function showPatientDetail(id){
+  const p=patients.find(x=>x.id===id);if(!p)return;selectedId=id;
+  document.getElementById('detailTag').textContent=p.name;
+  document.getElementById('patientDetail').innerHTML=`<dl class="detail-grid"><div><dt>Age / Sex</dt><dd>${p.age} · ${sexLabel(p.sex)}</dd></div><div><dt>Risk band</dt><dd>${badge(riskBand(p.riskScore))}</dd></div><div><dt>Resting BP</dt><dd>${p.trestbps} mm Hg</dd></div><div><dt>Cholesterol</dt><dd>${p.chol} mg/dl</dd></div><div><dt>Max HR</dt><dd>${p.thalach} bpm</dd></div><div><dt>ST depression</dt><dd>${p.oldpeak}</dd></div><div><dt>Chest pain</dt><dd>${['Typical','Atypical','Non-anginal','Asymptomatic'][p.cp]}</dd></div><div><dt>Exercise angina</dt><dd>${p.exang?'Yes':'No'}</dd></div><div><dt>Major vessels</dt><dd>${p.ca}</dd></div><div><dt>Thalassemia</dt><dd>${p.thal}</dd></div></dl><div class="detail-actions"><button type="button" class="btn btn-sm" id="detailPredict">Predict for patient</button></div>`;
+  document.getElementById('detailPredict').onclick=()=>{loadPatientToForm(p);showView('predict');logActivity(`Loaded ${p.name} into prediction form`,'info')};
+  renderPatients();
+}
+function loadPatientToForm(p){const form=document.getElementById('predictForm');['age','sex','cp','trestbps','chol','fbs','restecg','thalach','exang','oldpeak','slope','ca','thal'].forEach(k=>{if(form.elements[k])form.elements[k].value=p[k]})}
+function renderAlerts(){let list=alerts.slice();if(alertFilter)list=list.filter(a=>a.status===alertFilter);document.getElementById('alertRows').innerHTML=list.map(a=>`<tr><td><strong>${a.patient}</strong></td><td>${a.description}</td><td>${alertBadge(a.status)}</td><td>${a.status!=='Resolved'?`<button type="button" class="btn btn-sm btn-ghost resolve-btn" data-id="${a.id}">Resolve</button>`:'—'}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">No alerts</td></tr>'}
+function renderActivity(){const feed=document.getElementById('activityFeed');if(!activity.length){feed.innerHTML='<div class="empty">No activity yet.</div>';return}feed.innerHTML=activity.map(a=>`<div class="act-item"><span class="kind kind-${a.kind}">${a.kind}</span><div style="flex:1"><div>${a.text}</div><div class="when">${a.when}</div></div></div>`).join('')}
+function setGauge(pct,color){const offset=GAUGE*(1-pct/100);const el=document.getElementById('gaugeFill');el.style.strokeDashoffset=offset;el.setAttribute('stroke',color);document.getElementById('gaugePct').textContent=Math.round(pct)+'%';document.getElementById('gaugePct').style.color=color}
+function showResult(result){
+  document.getElementById('vizEmpty').hidden=true;document.getElementById('vizResult').hidden=false;
+  const pct=result.probability!=null?result.probability:(result.high_risk_probability||0)*100;
+  const level=result.risk_level||riskBand(pct/100);const color=level==='High'?'#e05c5c':level==='Moderate'?'#d4a017':'#5b9a8b';
+  setGauge(pct,color);document.getElementById('riskTitle').textContent=level+' risk';document.getElementById('riskTitle').style.color=color;
+  document.getElementById('riskMsg').textContent=result.message||`Estimated probability ${pct.toFixed(1)}%.`;
+  document.getElementById('riskSource').textContent='Source: '+(result.source||'model');
+  const drivers=result.drivers||{};const sorted=Object.entries(drivers).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  document.getElementById('driverList').innerHTML=sorted.map(([k,v])=>`<div class="driver-row"><span>${k}</span><div class="driver-bar"><div class="driver-fill" style="width:${Math.round(v*100)}%"></div></div><span>${Math.round(v*100)}%</span></div>`).join('');
+}
+async function checkApi(){const pill=document.getElementById('apiPill');try{const res=await fetch(`${API}/health`,{signal:AbortSignal.timeout(2000)});if(res.ok){pill.classList.add('online');pill.innerHTML='<span class="dot"></span> API online';return}}catch{}pill.classList.remove('online');pill.innerHTML='<span class="dot"></span> Local mode'}
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.go)));
+document.getElementById('overviewRows').addEventListener('click',e=>{const tr=e.target.closest('tr[data-id]');if(!tr)return;showView('patients');showPatientDetail(+tr.dataset.id);logActivity(`Opened patient #${tr.dataset.id}`,'info')});
+document.getElementById('patientRows').addEventListener('click',e=>{if(e.target.classList.contains('load-btn')){const p=patients.find(x=>x.id===+e.target.dataset.id);if(p){loadPatientToForm(p);showView('predict');logActivity(`Loaded ${p.name} into form`,'info')}return}const tr=e.target.closest('tr[data-id]');if(tr)showPatientDetail(+tr.dataset.id)});
+document.getElementById('patSearch').addEventListener('input',e=>{patQuery=e.target.value;renderPatients()});
+document.getElementById('patSort').addEventListener('change',e=>{patSort=e.target.value;renderPatients()});
+document.getElementById('patFilter').addEventListener('change',e=>{patFilter=e.target.value;renderPatients()});
+document.getElementById('alertFilter').addEventListener('change',e=>{alertFilter=e.target.value;renderAlerts()});
+document.getElementById('alertRows').addEventListener('click',e=>{if(!e.target.classList.contains('resolve-btn'))return;const a=alerts.find(x=>x.id===+e.target.dataset.id);if(a){a.status='Resolved';logActivity(`Resolved alert for ${a.patient}`,'info');renderAlerts();renderOverview()}});
+document.getElementById('predictForm').addEventListener('submit',async e=>{e.preventDefault();const body=Object.fromEntries(new FormData(e.target).entries());Object.keys(body).forEach(k=>body[k]=+body[k]);const btn=document.getElementById('predictBtn'),toast=document.getElementById('predictToast');btn.disabled=true;toast.textContent='Running model…';toast.className='toast';try{const result=await predict(body);predictions++;showResult(result);renderOverview();toast.textContent='Prediction complete';toast.className='toast ok';logActivity(`Prediction → ${result.risk_level} (${result.probability}%)`,'predict')}catch{toast.textContent='Prediction failed';toast.className='toast err'}finally{btn.disabled=false}});
+document.getElementById('resetFormBtn').addEventListener('click',()=>{document.getElementById('predictForm').reset();document.getElementById('vizResult').hidden=true;document.getElementById('vizEmpty').hidden=false});
+document.getElementById('clearActivityBtn').addEventListener('click',()=>{activity=[];renderActivity()});
+renderOverview();renderPatients();renderAlerts();renderActivity();checkApi();setInterval(checkApi,15000);
+</script>
+</body>
+</html>
