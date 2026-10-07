@@ -87,6 +87,9 @@ See `database/schema.sql`: `patients`, `assessments`, `alerts`.
 
 Statistical risk estimates only — not a medical device or diagnosis.
 
+## Visuals
+https://pulsexheartdiseaseriskprediction.vercel.app/
+
 ## Future Improvements
 
 - Persist predictions to SQL
