@@ -1,4 +1,4 @@
-[README.md](https://github.com/user-attachments/files/33168596/README.md)[Uploadi# PulseX — Heart Risk Command Center
+(https://github.com/user-attachments/files/33168596/README.md)# PulseX — Heart Risk Command Center
 
 End-to-end system that predicts heart-disease risk from clinical features, exposes predictions through a REST API, and surfaces them in a command-center dashboard plus a dedicated Angular module.
 
@@ -93,4 +93,4 @@ Statistical risk estimates only — not a medical device or diagnosis.
 - Authentication
 - SHAP explanations
 - Drift monitoring
-ng README.md…]()
+
